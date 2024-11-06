@@ -1,25 +1,33 @@
-from flask import Flask
-import requests
-app = Flask(__name__)
+from sqlalchemy import create_engine
+import pandas as pd
 
-@app.route('/')
-def index():
-    response = requests.get('http://api.stackexchange.com/2.3/questions?order=desc&sort=activity&site=stackoverflow')
-    for data in response.json()['items']:
-        if data['answer_count']==0:
-            print(data['title'])
-            print(data['link'])
-        else:
-            print('Skipped')
-        print("--------------------------------------")
-    print("This is after loop")
+# Database connection parameters
+username = ''  # replace with your MySQL username
+password = ''  # replace with your MySQL password
+host = 'localhost'          # 'localhost' can also be used
+database = 'market_star_schema'   # replace with your database name
+
+# Create the connection string
+connection_string = f"mysql+pymysql://{username}:{password}@{host}/{database}"
+
+# Create the SQLAlchemy engine
+engine = create_engine(connection_string)
+
+# Define your SQL query
+query = "select pd.Product_category as product_category \
+	   ,sum(mff.profit) as total_profit \
+from market_fact_full as mff \
+inner join prod_dimen as pd on pd.prod_id = mff.prod_id \
+group by 1 \
+order by 2 DESC;" 
+
+# Execute the query and load the data into a Pandas DataFrame
+try:
+    with engine.connect() as connection:
+        df = pd.read_sql(query, connection)
+        print(df)  # Display the DataFrame
+
+except Exception as e:
+    print("Error reading data from MySQL table:", e)
 
 
-    return {'title':data['title'], 'link':data['link']}
-
-
-
-with app.app_context():
-    food = Food(name='Mutton Gravy', description='Spicy Aromatic Gravy with Mutton')
-    db.session.add(food)
-    db.session.commit()

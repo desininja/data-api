@@ -1,0 +1,7 @@
+touch application.py
+export FLASK_APP=application.py
+export FLASK_ENV=development
+flask run
+
+
+Create variables in bash for sensitive data.
